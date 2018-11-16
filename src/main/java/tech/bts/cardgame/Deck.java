@@ -25,10 +25,10 @@ public class Deck {
         }
     }
 
-    public void shuffle(int times){
+    public void shuffle(){
         Random random = new Random();
 
-        for (int t = 0; t < times; t++) {
+        //for (int t = 0; t < times; t++) {
 
             for (int i = 0; i < cards.size(); i++) {
 
@@ -40,7 +40,7 @@ public class Deck {
                 this.cards.set(randomIndex, card1);
                 this.cards.set(i, card2);
             }
-        }
+        //}
     }
 
     public Card pickCard() {
