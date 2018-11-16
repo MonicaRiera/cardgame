@@ -4,22 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
+    enum State {OPEN, PLAYING}
 
-    //private final Player player1;
-    //private final Player player2;
     private final Deck deck;
     private final static  int INITIAL_HAND_SIZE = 5;
     private final static  int FINAL_HAND_SIZE = 3;
     private final static  int NUM_CARDS_TO_DISCARD = INITIAL_HAND_SIZE - FINAL_HAND_SIZE;
-    private String state;
+    private State state;
     private List<String> usernames;
 
     public Game(Deck deck) {
 
-        //this.player1 = player1;
-        //this.player2 = player2;
         this.deck = deck;
-        this.state = "open";
+        this.state = State.OPEN;
         this.usernames = new ArrayList<>();
     }
 
@@ -81,7 +78,7 @@ public class Game {
         return result;
     }
 
-    public String getState() {
+    public State getState() {
         return this.state;
     }
 
@@ -90,13 +87,13 @@ public class Game {
             }
 
     public void join(String userName) {
-        if (!this.state.equals("open")) {
+        if (this.state != State.OPEN) {
             throw new JoiningNotAllowedException();
         }
 
         this.usernames.add(userName);
         if (usernames.size() == 2) {
-            this.state = "playing";
+            this.state = State.PLAYING;
         }
 
     }

@@ -39,7 +39,7 @@ public class GameShould {
     public void be_open_when_created() {
 
         Game game = new Game(new Deck());
-        assertThat(game.getState(), is("open"));
+        assertThat(game.getState(), is(Game.State.OPEN));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class GameShould {
         Game game = new Game(new Deck());
         game.join("Ayça");
         assertThat(game.getPlayersName(), is(Arrays.asList("Ayça")));
-        assertThat(game.getState(), is("open"));
+        assertThat(game.getState(), is(Game.State.OPEN));
 
     }
 
@@ -56,7 +56,7 @@ public class GameShould {
         Game game = new Game(new Deck());
         game.join("Ayça");
         game.join("Monica");
-        assertThat(game.getState(), is("playing"));
+        assertThat(game.getState(), is(Game.State.PLAYING));
     }
 
     @Test(expected = JoiningNotAllowedException.class)
