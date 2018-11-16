@@ -1,23 +1,28 @@
 package tech.bts.cardgame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Game {
-    enum State {OPEN, PLAYING}
+
+    public enum State {OPEN, PLAYING}
 
     private final Deck deck;
-    private final static  int INITIAL_HAND_SIZE = 5;
-    private final static  int FINAL_HAND_SIZE = 3;
-    private final static  int NUM_CARDS_TO_DISCARD = INITIAL_HAND_SIZE - FINAL_HAND_SIZE;
     private State state;
     private List<String> usernames;
+    private Map<String, Card> pickedCardByUserName;
+    //private final static  int INITIAL_HAND_SIZE = 5;
+    //private final static  int FINAL_HAND_SIZE = 3;
+    //private final static  int NUM_CARDS_TO_DISCARD = INITIAL_HAND_SIZE - FINAL_HAND_SIZE;
 
     public Game(Deck deck) {
 
         this.deck = deck;
         this.state = State.OPEN;
         this.usernames = new ArrayList<>();
+        this.pickedCardByUserName = new HashMap<>();
     }
 
     /**public void play() {
@@ -95,6 +100,23 @@ public class Game {
         if (usernames.size() == 2) {
             this.state = State.PLAYING;
         }
+    }
 
+    public Card pickCard(String userName) {
+
+        if (!usernames.contains(userName)){
+            throw new PlayerNotInTheGameException();
+        }
+        Card pickedCard = pickedCardByUserName.get(userName);
+        if (pickedCard != null) {
+            throw new CannotPickTwoCardsInARowException();
+        }
+        Card newPickedCard = deck.pickCard();
+        pickedCardByUserName.put(userName, newPickedCard);
+        return newPickedCard;
+    }
+
+    public void discard(String userName) {
+        pickedCardByUserName.remove(userName);
     }
 }

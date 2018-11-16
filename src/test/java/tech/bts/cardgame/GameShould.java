@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class GameShould {
@@ -67,4 +67,58 @@ public class GameShould {
         game.join("Viktor");
     }
 
+    @Test
+    public void allow_player_pick_a_card_when_playing() {
+        Deck deck = new Deck();
+        Card card = new Card(3, 2, 5);
+        deck.add(card);
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+
+        Card pickedCard = game.pickCard("Ayça");
+        assertThat(pickedCard, is(card));
+    }
+
+    @Test(expected = PlayerNotInTheGameException.class)
+    public void not_allow_picking_card_non_players() {
+        Game game = new Game(new Deck());
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Alex");
+    }
+
+    @Test(expected = CannotPickTwoCardsInARowException.class)
+    public void not_allow_picking_two_cards_in_a_row() {
+        Deck deck = new Deck();
+        deck.add(new Card(3, 2, 5));
+        deck.add(new Card(3, 2, 5));
+        Game game = new Game(deck);
+
+        game.join("Ayça");
+        game.join("Monica");
+
+        game.pickCard("Ayça");
+        game.pickCard("Ayça");
+    }
+
+    @Test
+    public void allow_picking_if_previous_card_was_discarded() {
+        Deck deck = new Deck();
+        Card card1 = new Card(3, 2, 5);
+        deck.add(card1);
+        Card card2 = new Card(2, 7, 1);
+        deck.add(card2);
+        Game game = new Game(deck);
+
+        game.join("Ayça");
+        game.join("Monica");
+
+        Card pickedCard1 = game.pickCard("Ayça");
+        game.discard("Ayça");
+        Card pickedCard2 = game.pickCard("Ayça");
+
+        assertThat(pickedCard1, is(card2));
+        assertThat(pickedCard2, is(card1));
+    }
 }
