@@ -90,6 +90,14 @@ public class Game {
             }
 
     public void join(String userName) {
+        if (!this.state.equals("open")) {
+            throw new JoiningNotAllowedException();
+        }
+
         this.usernames.add(userName);
+        if (usernames.size() == 2) {
+            this.state = "playing";
+        }
+
     }
 }

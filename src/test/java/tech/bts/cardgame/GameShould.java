@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class GameShould {
@@ -38,27 +39,32 @@ public class GameShould {
     public void be_open_when_created() {
 
         Game game = new Game(new Deck());
-
-        assertEquals("open", game.getState());
+        assertThat(game.getState(), is("open"));
     }
 
     @Test
     public void allow_joining_when_open() {
         Game game = new Game(new Deck());
-
         game.join("Ayça");
+        assertThat(game.getPlayersName(), is(Arrays.asList("Ayça")));
+        assertThat(game.getState(), is("open"));
 
-        assertEquals(Arrays.asList("Ayça"), game.getPlayersName());
     }
 
     @Test
     public void be_playing_when_2_players_join() {
         Game game = new Game(new Deck());
-
         game.join("Ayça");
         game.join("Monica");
+        assertThat(game.getState(), is("playing"));
+    }
 
-        assertEquals("playing", game.getState());
+    @Test(expected = JoiningNotAllowedException.class)
+    public void not_allow_joining_if_not_open() {
+        Game game = new Game(new Deck());
+        game.join("Ayça");
+        game.join("Monica");
+        game.join("Viktor");
     }
 
 }
