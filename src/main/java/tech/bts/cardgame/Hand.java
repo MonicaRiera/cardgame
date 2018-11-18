@@ -11,6 +11,10 @@ public class Hand {
         this.cards = cards;
     }
 
+    public void add(Card card) {
+        this.cards.add(card);
+    }
+
     public Card calculate() {
 
         int magic = 0;
@@ -34,6 +38,13 @@ public class Hand {
         }
 
         return string;
+    }
 
+    public List<Card> getCards() {
+        return cards;
+    }
+
+    public int size() {
+        return this.cards.size();
     }
 }

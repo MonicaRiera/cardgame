@@ -1,39 +1,17 @@
 package tech.bts.cardgame;
 
 import org.junit.Test;
+import tech.bts.cardgame.exceptions.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static tech.bts.cardgame.Game.State.FINISHED;
 
 public class GameShould {
-
-    /**
-     * Creating a game:
-     * - A game is created with a deck of cards (each card has 3 numbers (>=1) that added make 10).
-     *   - Note: the 3 numbers represent magic, strength, intelligence
-     * - When a game is created, its state is OPEN.
-     *
-     * Joining a game:
-     * - A player can join an OPEN game (for simplicity, a player is indicated by its username).
-     * - When 2 players join the game, the state of the game changes to PLAYING.
-     * - A player can't join if the game state is not OPEN (throw an exception if someone tries).
-     *
-     * Picking cards:
-     * - When the game is PLAYING, any player that joined the game can pick a card.
-     * - After picking a card, a player must keep it or discard it.
-     * - A player can only discard 2 cards (i.e. must pick 3 cards).
-     *
-     * The battle (point calculation):
-     * - When the 2 players have picked 3 cards, the winner of that round is calculated:
-     *   - Each player adds all magics, all strengths and all intelligences
-     *   - Totals of each category is compared between players
-     *   - Player who wins in 2 categories earns a point (there may be no winner)
-     *
-     * - After the points are calculated, a new battle starts (players pick cards again)
-     * - If there are less than 10 cards in the deck, the game changes to state FINISHED
-     */
 
     @Test
     public void be_open_when_created() {
@@ -121,4 +99,213 @@ public class GameShould {
         assertThat(pickedCard1, is(card2));
         assertThat(pickedCard2, is(card1));
     }
+
+    @Test (expected = NotPlayingYetException.class)
+    public void not_allow_picking_if_state_is_not_playing() {
+        Deck deck = new Deck();
+        deck.add(new Card(3, 2, 5));
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.pickCard("Ayça");
+    }
+
+    @Test (expected = PickingNeededBeforeActingException.class)
+    public void not_allow_discarding_before_picking() {
+        Game game = new Game(new Deck());
+        game.join("Ayça");
+        game.discard("Ayça");
+    }
+
+    /**This test did not allow to discard more than two cards.
+     * Since the program itself auto-completes the hand once the user has discarded two cards,
+     * it is not necessary anymore because when the user tries to pick&discard another card
+     * TooManyCardsInHandException is executed
+     *
+     * @Test (expected = CanOnlyDiscardTwoCardsException.class)
+    public void not_allow_discarding_more_than_two_cards() {
+        Deck deck = new Deck();
+        deck.generate();
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+    }*/
+
+    @Test
+    public void keep_chosen_cards() {
+        Deck deck = new Deck();
+        deck.add(new Card(3, 2, 5));
+        deck.add(new Card(6, 1, 3));
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        Map<String, Hand> result = game.getHands();
+
+        assertThat(result.size(), is(1));
+
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        result = game.getHands();
+
+        assertThat(result.size(), is(1));
+    }
+
+    @Test
+    public void return_player_hand() {
+        Deck deck = new Deck();
+        deck.generate();
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+
+        assertThat(game.gatUserHand("Ayça").size(), is(3));
+    }
+
+    @Test (expected = TooManyCardsInHandException.class)
+    public void limit_hand_size_to_three() {
+        Deck deck = new Deck();
+        deck.generate();
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+        game.pickCard("Ayça");
+        game.keepCard("Ayça");
+    }
+
+    /**This test checked that the hand size was 3 after auto-completing.
+     * Since we've implemented the battle when the hands are ready,
+     * the values are deleted once used and the final value is a new empty map*/
+    @Test
+    public void autocomplete_when_two_cards_are_discarded() {
+        Deck deck = new Deck();
+        deck.generate();
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Monica");
+        game.discard("Monica");
+        game.pickCard("Monica");
+        game.keepCard("Monica");
+        game.pickCard("Monica");
+        game.discard("Monica");
+
+        assertEquals(new HashMap<>(), game.getHands());
+
+    }
+
+    @Test
+    public void give_a_point_to_winner() {
+        Deck deck = new Deck();
+        deck.generate();
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Monica");
+        game.discard("Monica");
+        game.pickCard("Monica");
+        game.keepCard("Monica");
+        game.pickCard("Monica");
+        game.discard("Monica");
+
+        Player p1 = game.getPlayers().get(1);
+
+        assertThat(p1.getPoints(), is(1));
+    }
+
+    @Test
+    public void set_control_values_to_default() {
+        Deck deck = new Deck();
+        deck.add(new Card(1, 2, 7));
+        deck.add(new Card(1, 3, 6));
+        deck.add(new Card(1, 4, 5));
+        deck.add(new Card(1, 5, 4));
+        deck.add(new Card(1, 6, 3));
+        deck.add(new Card(1, 7, 2));
+        deck.add(new Card(1, 8, 1));
+        deck.add(new Card(2, 2, 6));
+        deck.add(new Card(2, 3, 5));
+        deck.add(new Card(2, 4, 4));
+        deck.add(new Card(2, 5, 3));
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Monica");
+        game.discard("Monica");
+        game.pickCard("Monica");
+        game.keepCard("Monica");
+        game.pickCard("Monica");
+        game.discard("Monica");
+
+        assertEquals(new HashMap<>(), game.getDiscardedCardsByUserName());
+        assertEquals(new HashMap<>(), game.getPickedCardByUserName());
+    }
+
+    /**If, after the battle, the deck has less than 10 cards, the game state changes to FINISHED.*/
+    @Test
+    public void set_state_to_finished_when_less_than_ten_cards() {
+        Deck deck = new Deck();
+        deck.add(new Card(1, 2, 7));
+        deck.add(new Card(1, 3, 6));
+        deck.add(new Card(1, 4, 5));
+        deck.add(new Card(1, 5, 4));
+        deck.add(new Card(1, 6, 3));
+        deck.add(new Card(1, 7, 2));
+        deck.add(new Card(1, 8, 1));
+        deck.add(new Card(2, 2, 6));
+        deck.add(new Card(2, 3, 5));
+        deck.add(new Card(2, 4, 4));
+        deck.add(new Card(2, 5, 3));
+        Game game = new Game(deck);
+        game.join("Ayça");
+        game.join("Monica");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Ayça");
+        game.discard("Ayça");
+        game.pickCard("Monica");
+        game.discard("Monica");
+        game.pickCard("Monica");
+        game.keepCard("Monica");
+        game.pickCard("Monica");
+        game.discard("Monica");
+
+        assertThat(game.getState(), is(FINISHED));
+    }
+    
+
+
+
+
+
 }
