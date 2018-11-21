@@ -265,7 +265,6 @@ public class GameShould {
         assertThat(p2.getDiscardedCards(), is(0));
     }
 
-    /**If, after the battle, the deck has less than 10 cards, the game state changes to FINISHED.*/
     @Test
     public void set_state_to_finished_when_less_than_ten_cards() {
         Deck deck = new Deck();

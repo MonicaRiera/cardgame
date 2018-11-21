@@ -171,8 +171,6 @@ public class Game {
 
         Player p1 = players.get(0);
         Player p2 = players.get(1);
-        //Card total1 = totals.get(0);
-        //Card total2 = totals.get(1);
 
         int result = 0;
 
@@ -196,12 +194,13 @@ public class Game {
 
         if (result > 0) {
             p1.setPoints(1);
-
         } else if (result < 0) {
             p2.setPoints(1);
         } else {
             //System.out.println("No one wins...");
         }
+        p1.setTotals(null);
+        p2.setTotals(null);
 
         if (deck.size() < 10) {
             this.state = State.FINISHED;
@@ -214,16 +213,6 @@ public class Game {
 
     public State getState() {
         return this.state;
-    }
-
-    public Card getPickedCardByUserName(String userName) {
-        Player player = playerMap.get(userName);
-        return player.getPickedCard();
-    }
-
-    public int getDiscardedCardsByUserName(String userName) {
-        Player player = playerMap.get(userName);
-        return player.getDiscardedCards();
     }
 
     public Map<String, Hand> getHands() {
