@@ -2,10 +2,7 @@ package tech.bts.cardgame;
 
 import tech.bts.cardgame.exceptions.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class Game {
@@ -14,33 +11,30 @@ public class Game {
 
     private final Deck deck;
     private State state;
-    private List<Player> players;
-    private Map<String, Card> pickedCardByUserName;
-    private Map<String, Integer> discardedCardsByUserName;
-    private Map<String, Hand> hands;
+    private Map<String, Player> playerMap;
 
     public Game(Deck deck) {
 
         this.deck = deck;
         this.state = State.OPEN;
-        this.players = new ArrayList<>();
-        this.pickedCardByUserName = new HashMap<>();
-        this.discardedCardsByUserName = new HashMap<>();
-        this.hands = new HashMap<>();
+        this.playerMap = new HashMap<>();
     }
 
     /**When a user joins the game, a new player is created and added to a list of players
      * After two players joined the status of the game is changed to PLAYING and no other
      * users are allowed to enter the game*/
-    public void join(String userName) {
+    public Player join(String userName) {
         if (this.state != State.OPEN) {
             throw new JoiningNotAllowedException();
         }
 
-        this.players.add(new Player(userName));
-        if (players.size() == 2) {
+        Player player = new Player(userName);
+        this.playerMap.put(userName, player);
+        if (playerMap.size() == 2) {
             this.state = State.PLAYING;
         }
+
+        return player;
     }
 
     /**When the status is PLAYING, only the users in the game can pick cards
@@ -48,50 +42,48 @@ public class Game {
      * If a user tries to pick more than one card before deciding what to do with
      * the previous one, CannotPickTwoCardsInARowException is executed*/
     public Card pickCard(String userName) {
+        Player player = playerMap.get(userName);
 
         if (this.state != State.PLAYING) {
             throw new NotPlayingYetException();
         } else {
 
-            if (!getPlayersName().contains(userName)){
+            if (!playerMap.containsKey(userName)){
                 throw new PlayerNotInTheGameException();
             }
 
-            if (hands.get(userName) != null && hands.get(userName).size() >= 3) {
+            if (player.getHand() != null && player.getHand().size() >= 3) {
                 throw new TooManyCardsInHandException();
             }
 
-            Card pickedCard = pickedCardByUserName.get(userName);
-            if (pickedCard != null) {
+            if (player.getPickedCard() != null) {
                 throw new CannotPickTwoCardsInARowException();
             }
+
             Card newPickedCard = deck.pickCard();
-            pickedCardByUserName.put(userName, newPickedCard);
+            player.setPickedCard(newPickedCard);
             return newPickedCard;
         }
     }
 
     /**If the user discards a card, it is removed from the pickedCardsByUserName map and
      * the counter of discardedCardsByUserName is augmented by 1.
-     * After that, it executes checkAutoComplete and it auto-fills the rest of the hand if the user has
+     * After that, it executes autoComplete and it auto-fills the rest of the hand if the user has
      * already discarded two cards.
      * If a user tries to discard a card before picking it, PickingNeededBeforeActingException
      * is executed*/
     public void discard(String userName) {
-        if (pickedCardByUserName.get(userName) != null) {
+        Player player = playerMap.get(userName);
 
-            if (discardedCardsByUserName.get(userName) == null) {
-                pickedCardByUserName.remove(userName);
-                discardedCardsByUserName.put(userName, 1);
+        if (player.getPickedCard() != null) {
+            if (player.getDiscardedCards() < 2) {
+                player.setPickedCard(null);
+                player.setDiscardedCards(player.getDiscardedCards() + 1);
 
-            } else if (discardedCardsByUserName.get(userName) < 2) {
-                pickedCardByUserName.remove(userName);
-                int i = discardedCardsByUserName.get(userName) + 1;
-                discardedCardsByUserName.put(userName, i);
+                autoComplete(userName);
+            } else {
+                throw new TooManyDiscardsException();
             }
-
-            checkAutoComplete(userName);
-
         } else {
             throw new PickingNeededBeforeActingException();
         }
@@ -100,16 +92,16 @@ public class Game {
     /**When a player has discarded 2 cards, the hand of that player is completed automatically
      * by adding cards to it until the player has 3 cards. For example, if a player keeps 2 cards and discards 2 cards,
      * their hand is automatically completed with 1 card more*/
-    public void checkAutoComplete(String userName) {
-        if (discardedCardsByUserName.get(userName) != null && discardedCardsByUserName.get(userName) == 2) {
+    public void autoComplete(String userName) {
+        Player player = playerMap.get(userName);
 
-            if (hands.get(userName) != null) {
-                Hand hand = hands.get(userName);
+        if (player.getDiscardedCards() == 2) {
+            if (player.getHand() != null) {
+                Hand hand = player.getHand();
                 while (hand.size() < 3) {
                     pickCard(userName);
                     keepCard(userName);
                 }
-
             } else {
                 for (int i = 0; i < 3; i++) {
                     pickCard(userName);
@@ -125,43 +117,39 @@ public class Game {
      * If a user tries to keep a card before picking it, PickingNeededBeforeActingException
      * is executed*/
     public void keepCard(String userName) {
+        Player player = playerMap.get(userName);
 
-        if (pickedCardByUserName.get(userName) != null) {
-
-            if (hands.get(userName) != null) {
-
-                Hand hand = hands.get(userName);
-                if (hand.size() < 3) {
-                    hand.add(pickedCardByUserName.get(userName));
-                    pickedCardByUserName.remove(userName);
-                    hands.put(userName, hand);
-                } else {
-                    throw new TooManyCardsInHandException();
-                }
-
-            } else {
-                List<Card> cards = new ArrayList<>();
-                cards.add(pickedCardByUserName.get(userName));
-                Hand hand = new Hand(cards);
-                hands.put(userName, hand);
-                pickedCardByUserName.remove(userName);
-            }
-
-            int handsCompleted = 0;
-            for (Player player : players) {
-                String name = player.getName();
-                if (hands.get(name) != null && hands.get(name).size() == 3) {
-                    handsCompleted++;
-                }
-            }
-
-            if (handsCompleted == 2) {
-                compare();
-            }
-
-        } else {
+        if (player.getPickedCard() == null) {
             throw new PickingNeededBeforeActingException();
         }
+
+        if (player.getHand() == null) {
+            List<Card> cards = new ArrayList<>();
+            cards.add(player.getPickedCard());
+            player.setHand(new Hand(cards));
+            player.setPickedCard(null);
+        } else {
+            if (player.getHand().size() < 3) {
+                Hand hand = player.getHand();
+                hand.add(player.getPickedCard());
+                player.setPickedCard(null);
+            } else {
+                throw new TooManyCardsInHandException();
+            }
+        }
+
+        int handsCompleted = 0;
+        for (String user : getPlayersName()) {
+            player = playerMap.get(user);
+            if (player.getHand() != null && player.getHand().size() == 3) {
+                handsCompleted++;
+            }
+        }
+
+        if (handsCompleted == 2) {
+            compare();
+        }
+
     }
 
     /**When the hands of the 2 players are complete (3 cards each)
@@ -169,83 +157,81 @@ public class Game {
      * After that, the control maps (like pickedCardByUserName) are restarted
      * and if the deck has less than ten cards, the game state is set to FINISHED*/
     private void compare() {
-        Card total1 = hands.get(players.get(0).getName()).calculate();
-        Card total2 = hands.get(players.get(1).getName()).calculate();
-        //System.out.println("Result player 1:\nM: " + total1.getMagic() + ", S: " + total1.getStrength() + ", I: " + total1.getIntelligence() + "\n");
-        //System.out.println("Result player 2:\nM: " + total2.getMagic() + ", S: " + total2.getStrength() + ", I: " + total2.getIntelligence() + "\n");
+        List<Player> players = new ArrayList<>();
+
+        for (String user : getPlayersName()) {
+            Player player = playerMap.get(user);
+            players.add(player);
+            Card total = player.getHand().calculate();
+            player.setTotals(total);
+            player.setPickedCard(null);
+            player.setHand(null);
+            player.setDiscardedCards(0);
+        }
+
+        Player p1 = players.get(0);
+        Player p2 = players.get(1);
+        //Card total1 = totals.get(0);
+        //Card total2 = totals.get(1);
 
         int result = 0;
 
-        if (total1.getMagic() > total2.getMagic()) {
+        if (p1.getTotals().getMagic() > p2.getTotals().getMagic()) {
             result++;
-        } else if (total1.getMagic() < total2.getMagic()) {
+        } else if (p1.getTotals().getMagic() < p2.getTotals().getMagic()) {
             result--;
         }
 
-        if (total1.getStrength() > total2.getStrength()) {
+        if (p1.getTotals().getStrength() > p2.getTotals().getStrength()) {
             result++;
-        } else if (total1.getStrength() < total2.getStrength()) {
+        } else if (p1.getTotals().getStrength() < p2.getTotals().getStrength()) {
             result--;
         }
 
-        if (total1.getIntelligence() > total2.getIntelligence()) {
+        if (p1.getTotals().getIntelligence() > p2.getTotals().getIntelligence()) {
             result++;
-        } else if (total1.getIntelligence() < total2.getIntelligence()) {
+        } else if (p1.getTotals().getIntelligence() < p2.getTotals().getIntelligence()) {
             result--;
         }
 
         if (result > 0) {
-            players.get(0).setPoints(1);
+            p1.setPoints(1);
 
         } else if (result < 0) {
-            players.get(1).setPoints(1);
+            p2.setPoints(1);
         } else {
             //System.out.println("No one wins...");
         }
-
-        this.pickedCardByUserName = new HashMap<>();
-        this.hands = new HashMap<>();
-        this.discardedCardsByUserName = new HashMap<>();
 
         if (deck.size() < 10) {
             this.state = State.FINISHED;
         }
     }
 
-
-    public Hand gatUserHand(String userName) {
-        return hands.get(userName);
-    }
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-    public List<String> getPlayersName() {
-        List<String> names = new ArrayList<>();
-        for (Player player : players) {
-            names.add(player.getName());
-        }
-        return names;
+    public Set<String> getPlayersName() {
+        return playerMap.keySet();
     }
 
     public State getState() {
         return this.state;
     }
 
-    public Deck getDeck() {
-        return deck;
+    public Card getPickedCardByUserName(String userName) {
+        Player player = playerMap.get(userName);
+        return player.getPickedCard();
     }
 
-    public Map<String, Card> getPickedCardByUserName() {
-        return pickedCardByUserName;
-    }
-
-    public Map<String, Integer> getDiscardedCardsByUserName() {
-        return discardedCardsByUserName;
+    public int getDiscardedCardsByUserName(String userName) {
+        Player player = playerMap.get(userName);
+        return player.getDiscardedCards();
     }
 
     public Map<String, Hand> getHands() {
+        Map<String, Hand> hands = new HashMap<>();
+        for (String user : getPlayersName()) {
+            Player player = playerMap.get(user);
+            hands.put(user, player.getHand());
+        }
         return hands;
     }
 }

@@ -3,8 +3,6 @@ package tech.bts.cardgame;
 import org.junit.Test;
 import tech.bts.cardgame.exceptions.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -23,8 +21,8 @@ public class GameShould {
     @Test
     public void allow_joining_when_open() {
         Game game = new Game(new Deck());
-        game.join("Ayça");
-        assertThat(game.getPlayersName(), is(Arrays.asList("Ayça")));
+        Player player = game.join("Ayça");
+        assertThat(player.getName(), is("Ayça"));
         assertThat(game.getState(), is(Game.State.OPEN));
 
     }
@@ -102,9 +100,7 @@ public class GameShould {
 
     @Test (expected = NotPlayingYetException.class)
     public void not_allow_picking_if_state_is_not_playing() {
-        Deck deck = new Deck();
-        deck.add(new Card(3, 2, 5));
-        Game game = new Game(deck);
+        Game game = new Game(new Deck());
         game.join("Ayça");
         game.pickCard("Ayça");
     }
@@ -113,6 +109,7 @@ public class GameShould {
     public void not_allow_discarding_before_picking() {
         Game game = new Game(new Deck());
         game.join("Ayça");
+        game.join("Monica");
         game.discard("Ayça");
     }
 
@@ -121,7 +118,7 @@ public class GameShould {
      * it is not necessary anymore because when the user tries to pick&discard another card
      * TooManyCardsInHandException is executed
      *
-     * @Test (expected = CanOnlyDiscardTwoCardsException.class)
+     * @Test (expected = TooManyDiscardsException.class)
     public void not_allow_discarding_more_than_two_cards() {
         Deck deck = new Deck();
         deck.generate();
@@ -142,19 +139,18 @@ public class GameShould {
         deck.add(new Card(3, 2, 5));
         deck.add(new Card(6, 1, 3));
         Game game = new Game(deck);
-        game.join("Ayça");
-        game.join("Monica");
+        Player p1 = game.join("Ayça");
+        Player p2 = game.join("Monica");
         game.pickCard("Ayça");
         game.keepCard("Ayça");
         Map<String, Hand> result = game.getHands();
 
-        assertThat(result.size(), is(1));
+        assertThat(p1.getHand().size(), is(1));
 
         game.pickCard("Ayça");
         game.keepCard("Ayça");
-        result = game.getHands();
 
-        assertThat(result.size(), is(1));
+        assertThat(p1.getHand().size(), is(2));
     }
 
     @Test
@@ -162,8 +158,8 @@ public class GameShould {
         Deck deck = new Deck();
         deck.generate();
         Game game = new Game(deck);
-        game.join("Ayça");
-        game.join("Monica");
+        Player p1 = game.join("Ayça");
+        Player p2 = game.join("Monica");
         game.pickCard("Ayça");
         game.keepCard("Ayça");
         game.pickCard("Ayça");
@@ -171,7 +167,7 @@ public class GameShould {
         game.pickCard("Ayça");
         game.keepCard("Ayça");
 
-        assertThat(game.gatUserHand("Ayça").size(), is(3));
+        assertThat(p1.getHand().size(), is(3));
     }
 
     @Test (expected = TooManyCardsInHandException.class)
@@ -193,14 +189,14 @@ public class GameShould {
 
     /**This test checked that the hand size was 3 after auto-completing.
      * Since we've implemented the battle when the hands are ready,
-     * the values are deleted once used and the final value is a new empty map*/
+     * the values are deleted once used and the final value is an empty hand*/
     @Test
     public void autocomplete_when_two_cards_are_discarded() {
         Deck deck = new Deck();
         deck.generate();
         Game game = new Game(deck);
-        game.join("Ayça");
-        game.join("Monica");
+        Player p1 = game.join("Ayça");
+        Player p2 = game.join("Monica");
         game.pickCard("Ayça");
         game.discard("Ayça");
         game.pickCard("Ayça");
@@ -212,7 +208,7 @@ public class GameShould {
         game.pickCard("Monica");
         game.discard("Monica");
 
-        assertEquals(new HashMap<>(), game.getHands());
+        assertEquals(p1.getHand(), p2.getHand());
 
     }
 
@@ -221,8 +217,8 @@ public class GameShould {
         Deck deck = new Deck();
         deck.generate();
         Game game = new Game(deck);
-        game.join("Ayça");
-        game.join("Monica");
+        Player p1 = game.join("Ayça");
+        Player p2 = game.join("Monica");
         game.pickCard("Ayça");
         game.discard("Ayça");
         game.pickCard("Ayça");
@@ -234,9 +230,7 @@ public class GameShould {
         game.pickCard("Monica");
         game.discard("Monica");
 
-        Player p1 = game.getPlayers().get(1);
-
-        assertThat(p1.getPoints(), is(1));
+        assertThat(p2.getPoints(), is(1));
     }
 
     @Test
@@ -254,8 +248,8 @@ public class GameShould {
         deck.add(new Card(2, 4, 4));
         deck.add(new Card(2, 5, 3));
         Game game = new Game(deck);
-        game.join("Ayça");
-        game.join("Monica");
+        Player p1 = game.join("Ayça");
+        Player p2 = game.join("Monica");
         game.pickCard("Ayça");
         game.discard("Ayça");
         game.pickCard("Ayça");
@@ -267,8 +261,8 @@ public class GameShould {
         game.pickCard("Monica");
         game.discard("Monica");
 
-        assertEquals(new HashMap<>(), game.getDiscardedCardsByUserName());
-        assertEquals(new HashMap<>(), game.getPickedCardByUserName());
+        assertEquals(p1.getHand(), null);
+        assertThat(p2.getDiscardedCards(), is(0));
     }
 
     /**If, after the battle, the deck has less than 10 cards, the game state changes to FINISHED.*/
