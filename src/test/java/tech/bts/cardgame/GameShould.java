@@ -2,12 +2,13 @@ package tech.bts.cardgame;
 
 import org.junit.Test;
 import tech.bts.cardgame.exceptions.*;
+import tech.bts.cardgame.model.*;
 
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static tech.bts.cardgame.Game.State.FINISHED;
+import static tech.bts.cardgame.model.Game.State.FINISHED;
 
 public class GameShould {
 
