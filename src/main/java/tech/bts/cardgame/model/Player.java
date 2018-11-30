@@ -7,7 +7,6 @@ public class Player {
     private int points;
     private Card pickedCard;
     private int discardedCards;
-    private Card totals;
 
 
     public Player(String name) {
@@ -16,7 +15,6 @@ public class Player {
         this.discardedCards = 0;
         this.pickedCard = null;
         this.hand = null;
-        this.totals = null;
     }
 
     public void setHand(Hand hand) {
@@ -55,11 +53,4 @@ public class Player {
         this.discardedCards = discardedCards;
     }
 
-    public Card getTotals() {
-        return totals;
-    }
-
-    public void setTotals(Card totals) {
-        this.totals = totals;
-    }
 }

@@ -8,7 +8,7 @@ import java.util.*;
 public class Game {
 
     public enum State {OPEN, PLAYING, FINISHED}
-
+    private long id;
     private final Deck deck;
     private State state;
     private Map<String, Player> playerMap;
@@ -20,9 +20,11 @@ public class Game {
         this.playerMap = new HashMap<>();
     }
 
-    /**When a user joins the game, a new player is created and added to a list of players
+    /**
+     * When a user joins the game, a new player is created and added to a list of players
      * After two players joined the status of the game is changed to PLAYING and no other
-     * users are allowed to enter the game*/
+     * users are allowed to enter the game
+     */
     public Player join(String userName) {
         if (this.state != State.OPEN) {
             throw new JoiningNotAllowedException();
@@ -37,61 +39,67 @@ public class Game {
         return player;
     }
 
-    /**When the status is PLAYING, only the users in the game can pick cards
+    /**
+     * When the status is PLAYING, only the users in the game can pick cards
      * If a user has more than three cards TooManyCardsInHandException is executed.
      * If a user tries to pick more than one card before deciding what to do with
-     * the previous one, CannotPickTwoCardsInARowException is executed*/
+     * the previous one, CannotPickTwoCardsInARowException is executed
+     */
     public Card pickCard(String userName) {
         Player player = playerMap.get(userName);
 
         if (this.state != State.PLAYING) {
             throw new NotPlayingYetException();
-        } else {
-
-            if (!playerMap.containsKey(userName)){
-                throw new PlayerNotInTheGameException();
-            }
-
-            if (player.getHand() != null && player.getHand().size() >= 3) {
-                throw new TooManyCardsInHandException();
-            }
-
-            if (player.getPickedCard() != null) {
-                throw new CannotPickTwoCardsInARowException();
-            }
-
-            Card newPickedCard = deck.pickCard();
-            player.setPickedCard(newPickedCard);
-            return newPickedCard;
         }
+
+        if (!playerMap.containsKey(userName)) {
+            throw new PlayerNotInTheGameException();
+        }
+
+        if (player.getHand() != null && player.getHand().size() >= 3) {
+            throw new TooManyCardsInHandException();
+        }
+
+        if (player.getPickedCard() != null) {
+            throw new CannotPickTwoCardsInARowException();
+        }
+
+        Card newPickedCard = deck.pickCard();
+        player.setPickedCard(newPickedCard);
+        return newPickedCard;
+
     }
 
-    /**If the user discards a card, it is removed from the pickedCardsByUserName map and
+    /**
+     * If the user discards a card, it is removed from the pickedCardsByUserName map and
      * the counter of discardedCardsByUserName is augmented by 1.
      * After that, it executes autoComplete and it auto-fills the rest of the hand if the user has
      * already discarded two cards.
      * If a user tries to discard a card before picking it, PickingNeededBeforeActingException
-     * is executed*/
+     * is executed
+     */
     public void discard(String userName) {
         Player player = playerMap.get(userName);
 
-        if (player.getPickedCard() != null) {
-            if (player.getDiscardedCards() < 2) {
-                player.setPickedCard(null);
-                player.setDiscardedCards(player.getDiscardedCards() + 1);
-
-                autoComplete(userName);
-            } else {
-                throw new TooManyDiscardsException();
-            }
-        } else {
+        if (player.getPickedCard() == null) {
             throw new PickingNeededBeforeActingException();
         }
+
+        if (player.getDiscardedCards() >= 2) {
+            throw new TooManyCardsInHandException();
+        }
+
+        player.setPickedCard(null);
+        player.setDiscardedCards(player.getDiscardedCards() + 1);
+
+        autoComplete(userName);
     }
 
-    /**When a player has discarded 2 cards, the hand of that player is completed automatically
+    /**
+     * When a player has discarded 2 cards, the hand of that player is completed automatically
      * by adding cards to it until the player has 3 cards. For example, if a player keeps 2 cards and discards 2 cards,
-     * their hand is automatically completed with 1 card more*/
+     * their hand is automatically completed with 1 card more
+     */
     public void autoComplete(String userName) {
         Player player = playerMap.get(userName);
 
@@ -111,11 +119,13 @@ public class Game {
         }
     }
 
-    /**If the user keeps the card, it is added to a hand unless it has already three cards,
+    /**
+     * If the user keeps the card, it is added to a hand unless it has already three cards,
      * that TooManyCardsInHandException is executed.
      * Once the two players have three cards in hand, compare() method is called to start the battle.
      * If a user tries to keep a card before picking it, PickingNeededBeforeActingException
-     * is executed*/
+     * is executed
+     */
     public void keepCard(String userName) {
         Player player = playerMap.get(userName);
 
@@ -152,24 +162,37 @@ public class Game {
 
     }
 
-    /**When the hands of the 2 players are complete (3 cards each)
+    /**
+     * When the hands of the 2 players are complete (3 cards each)
      * the battle is performed and the winning player (if any) gets a point.
-     * After that, the control maps (like pickedCardByUserName) are restarted
-     * and if the deck has less than ten cards, the game state is set to FINISHED*/
+     * After that, the control fields (like pickedCard) are restarted
+     * and if the deck has less than ten cards, the game state is set to FINISHED
+     */
     private void compare() {
-        List<Player> players = new ArrayList<>();
+        Map<String, Card> totals = new HashMap<>();
 
-        for (String user : getPlayersName()) {
-            Player player = playerMap.get(user);
-            players.add(player);
+        for (String userName : getPlayersName()) {
+            Player player = playerMap.get(userName);
             Card total = player.getHand().calculate();
-            player.setTotals(total);
+            totals.put(userName, total);
             player.setPickedCard(null);
             player.setHand(null);
             player.setDiscardedCards(0);
         }
 
-        Player p1 = players.get(0);
+
+
+        /**for (Player user : playerMap.values()) {
+            Player player = playerMap.get(user);
+            Card total = player.getHand().calculate();
+            totals.put(user, total);
+            player.setPickedCard(null);
+            player.setHand(null);
+            player.setDiscardedCards(0);
+        }*/
+
+
+        /**Player p1 = players.get(0);
         Player p2 = players.get(1);
 
         int result = 0;
@@ -198,9 +221,7 @@ public class Game {
             p2.setPoints(1);
         } else {
             //System.out.println("No one wins...");
-        }
-        p1.setTotals(null);
-        p2.setTotals(null);
+        }*/
 
         if (deck.size() < 10) {
             this.state = State.FINISHED;
@@ -222,5 +243,13 @@ public class Game {
             hands.put(user, player.getHand());
         }
         return hands;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }
