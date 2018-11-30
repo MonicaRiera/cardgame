@@ -180,8 +180,6 @@ public class Game {
             player.setDiscardedCards(0);
         }
 
-
-
         /**for (Player user : playerMap.values()) {
             Player player = playerMap.get(user);
             Card total = player.getHand().calculate();
@@ -190,7 +188,6 @@ public class Game {
             player.setHand(null);
             player.setDiscardedCards(0);
         }*/
-
 
         /**Player p1 = players.get(0);
         Player p2 = players.get(1);
