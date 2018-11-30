@@ -180,45 +180,35 @@ public class Game {
             player.setDiscardedCards(0);
         }
 
-        /**for (Player user : playerMap.values()) {
-            Player player = playerMap.get(user);
-            Card total = player.getHand().calculate();
-            totals.put(user, total);
-            player.setPickedCard(null);
-            player.setHand(null);
-            player.setDiscardedCards(0);
-        }*/
-
-        /**Player p1 = players.get(0);
-        Player p2 = players.get(1);
+        ArrayList<String> usernames = new ArrayList<>(totals.keySet());
 
         int result = 0;
 
-        if (p1.getTotals().getMagic() > p2.getTotals().getMagic()) {
+        if (totals.get(usernames.get(0)).getMagic() > totals.get(usernames.get(1)).getMagic()) {
             result++;
-        } else if (p1.getTotals().getMagic() < p2.getTotals().getMagic()) {
+        } else if (totals.get(usernames.get(0)).getMagic() < totals.get(usernames.get(1)).getMagic()) {
             result--;
         }
 
-        if (p1.getTotals().getStrength() > p2.getTotals().getStrength()) {
+        if (totals.get(usernames.get(0)).getStrength() > totals.get(usernames.get(1)).getStrength()) {
             result++;
-        } else if (p1.getTotals().getStrength() < p2.getTotals().getStrength()) {
+        } else if (totals.get(usernames.get(0)).getStrength() < totals.get(usernames.get(1)).getStrength()) {
             result--;
         }
 
-        if (p1.getTotals().getIntelligence() > p2.getTotals().getIntelligence()) {
+        if (totals.get(usernames.get(0)).getIntelligence() > totals.get(usernames.get(1)).getIntelligence()) {
             result++;
-        } else if (p1.getTotals().getIntelligence() < p2.getTotals().getIntelligence()) {
+        } else if (totals.get(usernames.get(0)).getIntelligence() < totals.get(usernames.get(1)).getIntelligence()) {
             result--;
         }
 
         if (result > 0) {
-            p1.setPoints(1);
+            playerMap.get(usernames.get(0)).setPoints(1);
         } else if (result < 0) {
-            p2.setPoints(1);
+            playerMap.get(usernames.get(1)).setPoints(1);
         } else {
             //System.out.println("No one wins...");
-        }*/
+        }
 
         if (deck.size() < 10) {
             this.state = State.FINISHED;
