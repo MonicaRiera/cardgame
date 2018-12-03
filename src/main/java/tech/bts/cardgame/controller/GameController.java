@@ -7,6 +7,9 @@ import tech.bts.cardgame.model.Game;
 import tech.bts.cardgame.model.GameUser;
 import tech.bts.cardgame.service.GameService;
 
+import javax.validation.constraints.Size;
+import java.util.List;
+
 @RestController
 public class GameController {
 
@@ -33,5 +36,10 @@ public class GameController {
     public Card pickCard(@RequestBody GameUser gameUser, @PathVariable long gameId){
         gameUser.setGameId(gameId);
         return gameService.pickCard(gameUser);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "/games")
+    public List<Game> getAllGames(){
+        return gameService.getAllGames();
     }
 }
