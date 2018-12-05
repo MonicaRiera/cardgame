@@ -26,7 +26,7 @@ public class Application {
 
             gameService.joinGame(new GameUser(game1.getId(), "Patrick"));
             gameService.joinGame(new GameUser(game1.getId(), "Ilia"));
-            gameService.joinGame(new GameUser(game2.getId(), "Monica"));
+            gameService.joinGame(new GameUser(game2.getId(), "Ayça"));
             gameService.joinGame(new GameUser(game3.getId(), "John"));
             gameService.joinGame(new GameUser(game3.getId(), "Mary"));
         };
