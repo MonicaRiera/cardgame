@@ -1,6 +1,8 @@
 package tech.bts.cardgame.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import tech.bts.cardgame.model.Card;
 import tech.bts.cardgame.model.Deck;
@@ -41,5 +43,9 @@ public class GameService {
 
     public List<Game> getAllGames() {
         return gameRepository.getAll();
+    }
+
+    public Game getGameById(long gameId) {
+        return gameRepository.gameById(gameId);
     }
 }
