@@ -51,10 +51,10 @@ public class GameWebController {
         response.sendRedirect("/games");
     }
 
-    @RequestMapping(method = GET, path = "/{gameId}/join")
-    public void joinGame(HttpServletResponse response, @PathVariable long gameId) throws IOException {
-        gameService.joinGame(new GameUser(gameId, "Monica"));
-        response.sendRedirect("/games/" + gameId);
+    @RequestMapping(method = POST, path = "/join")
+    public void joinGame(HttpServletResponse response, GameUser gameUser) throws IOException {
+        gameService.joinGame(gameUser);
+        response.sendRedirect("/games/" + gameUser.getGameId());
     }
 
 }
