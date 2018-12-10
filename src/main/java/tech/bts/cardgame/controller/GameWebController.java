@@ -1,16 +1,24 @@
 package tech.bts.cardgame.controller;
 
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.Template;
+import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
+import com.github.jknack.handlebars.io.TemplateLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tech.bts.cardgame.model.Game;
 import tech.bts.cardgame.model.GameUser;
 import tech.bts.cardgame.service.GameService;
+import tech.bts.cardgame.util.Util;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static tech.bts.cardgame.model.Game.State.*;
 
 @RestController
 @RequestMapping(path = "/games")
@@ -25,17 +33,33 @@ public class GameWebController {
 
     @RequestMapping(method = GET)
     public String getAllGames(){
-        return buildGameList();
+        String result = "<h1>List of games</h1>" +
+                "<a href=\"/games/create\">Create game</a><ul>";
+        List<Game> games = gameService.getAllGames();
+        for (Game game : games) {
+            result += "<li><a href=\"/games/" + game.getId() + "\">Game ID: " + game.getId() + "</a> " +
+                    "State: " + game.getState() + " " +
+                    "Players: " + game.getPlayersName() + "</li>";
+        }
+        result += "</ul>";
+        return result;
     }
 
     @RequestMapping(method = GET, path = "/{gameId}")
-    public String getGameById(@PathVariable long gameId) {
+    public String getGameById(@PathVariable long gameId) throws IOException {
         Game game = gameService.getGameById(gameId);
-        String result = "<h1>Game " + game.getId() + "</h1> <a href=\"/games\" <p>Go back to the games</p></a><p>State: " + game.getState() + "</p><p>Players: " + game.getPlayersName() + "</p>";
-        if (game.getState() == Game.State.OPEN) {
-            result += "<p><a href=\"/games/" + game.getId() + "/join\"> Join this game</p>";
-        }
-        return result;
+
+        TemplateLoader loader = new ClassPathTemplateLoader();
+        loader.setPrefix("/templates");
+        loader.setSuffix(".hbs");
+        Handlebars handlebars = new Handlebars(loader);
+
+        Template template = handlebars.compile("game-detail");
+
+        Map<String, Object> values = new HashMap<>();
+        values.put("game", game);
+        values.put("gameIsOpen", game.getState() == OPEN);
+        return template.apply(values);
     }
 
 
@@ -47,20 +71,8 @@ public class GameWebController {
 
     @RequestMapping(method = GET, path = "/{gameId}/join")
     public void joinGame(HttpServletResponse response, @PathVariable long gameId) throws IOException {
-        GameUser gameUser = new GameUser(gameId, "Monica");
-        gameService.joinGame(gameUser);
+        gameService.joinGame(new GameUser(gameId, "Monica"));
         response.sendRedirect("/games/" + gameId);
-    }
-
-    private String buildGameList() {
-        String result = "<h1>List of games</h1><p><a href=\"/games/create\">Create game</a></p><ul>";
-        List<Game> games = gameService.getAllGames();
-        for (Game game : games) {
-            //String players = joinStrings(game.getPlayersName(), " VS ");
-            result += "<a href=\"/games/" + game.getId() + "\" target=\"_blank\"><li>Game ID: " + game.getId() + "</a> State: " + game.getState() + " Players: " + game.getPlayersName() + "</li>";
-        }
-        result += "</ul>";
-        return result;
     }
 }
 

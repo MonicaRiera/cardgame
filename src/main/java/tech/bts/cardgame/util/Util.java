@@ -1,15 +1,12 @@
 package tech.bts.cardgame.util;
 
 import java.util.Collection;
+import java.util.List;
 
 public class Util {
 
     public static String joinStrings(Collection<String> texts, String separator) {
-        String result = "";
-        for (Object text : texts) {
-            result += text + " " + separator + " ";
-        }
-        return result;
+        return ((List<String>) texts).get(0) + " " + separator + " " + ((List<String>) texts).get(1);
     }
 
 }
