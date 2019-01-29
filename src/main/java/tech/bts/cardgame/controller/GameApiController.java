@@ -44,4 +44,9 @@ public class GameApiController {
     public List<Game> getAllGames(){
         return gameService.getAllGames();
     }
+
+    @RequestMapping (method = GET, path = "/{gameId}")
+    public Game getGameById(@PathVariable long gameId) {
+        return gameService.getGameById(gameId);
+    }
 }

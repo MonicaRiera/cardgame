@@ -12,7 +12,7 @@ public class HandlebarsUtil {
 
     private static Handlebars handlebars;
 
-    // static will only be executed once
+    // public will only be executed once
     static {
         TemplateLoader loader = new ClassPathTemplateLoader();
         loader.setPrefix("/templates");
