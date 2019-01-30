@@ -3,12 +3,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 console.log("Game Id: " + gameId);
 
-const game = fetch("http://localhost:8080/api/games/" + gameId);
+//const game = fetch("http://localhost:8080/api/games/" + gameId);
+const gamePromise = axios.get("http://localhost:8080/api/games/" + gameId);
 
-game
-    .then(x => x.json()) //converts the response to json
-    .then(function (game) {
-
+gamePromise
+    //.then(x => x.json()) //converts the response to json
+    .then(function (response) {
+        const game = response.data;
         // this function will be called when the data comes
         // at this point, games contains the data that the end-point sends (the list of games)
         const container = document.getElementById("container");
