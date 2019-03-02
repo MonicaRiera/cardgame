@@ -244,4 +244,8 @@ public class Game {
     public String toString() {
         return this.playerMap.values().toString();
     }
+
+    public void setState(State state) {
+        this.state = state;
+    }
 }
