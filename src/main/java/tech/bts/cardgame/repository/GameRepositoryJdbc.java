@@ -40,7 +40,7 @@ public class GameRepositoryJdbc {
     }
 
     public Game gameById(long id) throws SQLException{
-        resultSet = statement.executeQuery("SELECT * FROM games WHERE id = $id");
+        resultSet = statement.executeQuery("SELECT * FROM games WHERE id =" + id);
         int gameId = resultSet.getInt("id");
         String state = resultSet.getString("state");
         String players = resultSet.getString("players");
