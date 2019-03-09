@@ -34,11 +34,9 @@ public class GameRepositoryJdbc {
 
         try {
 
-            game.setId(nextId);
             Connection connection = dataSource.getConnection();
             Statement statement = connection.createStatement();
             statement.executeUpdate("INSERT INTO GAMES (state, players) VALUES (" + game.getState() + ", NULL)");
-            nextId++;
         } catch (Exception e) {
             throw new RuntimeException("Error creating game", e);
         }
