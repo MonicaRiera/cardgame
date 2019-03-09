@@ -14,7 +14,7 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-
+    /*
     @Bean
     public CommandLineRunner createDummyData(GameService gameService) {
 
@@ -30,5 +30,5 @@ public class Application {
             gameService.joinGame(new GameUser(game3.getId(), "John"));
             gameService.joinGame(new GameUser(game3.getId(), "Mary"));
         };
-    }
+    }*/
 }
