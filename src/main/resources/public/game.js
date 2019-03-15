@@ -27,6 +27,24 @@ function displayGame(game) {
     let gamePlayers = document.createElement("p");
     gamePlayers.textContent = "Players: " + game.playersName;
     container.appendChild(gamePlayers);
+
+    if (game.state == "OPEN") {
+
+        let input = document.createElement("input");
+        input.type = "text";
+        input.name = "username";
+        container.appendChild(input);
+
+        let button = document.createElement("button");
+        button.type = "button";
+        button.value = "Join this game";
+        button.name = "Join game";
+        button.onclick = function (){
+            updateGame(input.value);
+            //console.log(input.value);
+        };
+        container.appendChild(button);
+    }
 }
 
 function displayError(error) {
@@ -34,4 +52,15 @@ function displayError(error) {
     const p = document.createElement("p");
     p.textContent = "The game could not be loaded: " + error;
     container.appendChild(p);
+}
+
+function updateGame(player) {
+    axios.put("/api/games/" + gameId + "/join", {gameUser : player})
+        .then(function (response) {
+            window.location.reload();
+            console.log(response);
+        })
+        .catch(function (error) {
+            displayError(error);
+        });
 }

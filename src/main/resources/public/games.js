@@ -34,22 +34,20 @@ function loadGames() {
 
 loadGames();
 
-//let button = document.getElementById("button");
-//button.onclick = function () {
+//var button = document.getElementById("button");
+//button.addEventListener("click", createGame);
+//onclick = function () {
 //    createGame();
 //};
 
 
 function createGame() {
-    axios.post("http://localhost:8080/api/games", {})
+    axios.post('http://localhost:8080/api/games')
         .then(function (response) {
-            console.log(response);
+            console.log(response.data);
         })
         .catch(function (error) {
             console.log(error);
         });
     window.location.reload();
-
-
-
 }

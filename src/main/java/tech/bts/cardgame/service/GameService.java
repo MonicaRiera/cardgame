@@ -35,6 +35,8 @@ public class GameService {
     public void joinGame(GameUser gameUser) {
         Game game = gameRepository.gameById(gameUser.getGameId());
         game.join(gameUser.getUsername());
+
+        gameRepository.update(game);
     }
 
     public Card pickCard(GameUser gameUser) {
