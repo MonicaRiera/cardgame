@@ -23,7 +23,6 @@ public class GameRepositoryJdbc {
     }
 
     public void createGame(Game game) {
-
         jdbcTemplate.update("insert into games (state, players)" +
                 " values ('" + game.getState() + "', NULL)");
     }
@@ -76,5 +75,16 @@ public class GameRepositoryJdbc {
         }
 
         jdbcTemplate.update("UPDATE games SET state = '" + game.getState().toString() + "', players = '" + players + "' WHERE id = '" + game.getId()+ "'");
+    }
+
+    public void createOrUpdate(Game game) {
+        Game requestedGame = jdbcTemplate.queryForObject("SELECT * FROM games WHERE id =" + game.getId(),
+                (resultSet, rowNum) -> getGame(resultSet));
+
+        if (requestedGame != null) {
+            update(game);
+        } else {
+            createGame(game);
+        }
     }
 }
